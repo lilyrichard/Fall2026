@@ -169,15 +169,15 @@ print('Done.')
 # Calculate the permanent dipole moment of the orbital.
 X_g, Y_g, Z_g = np.meshgrid(x_coords, y_coords, z_coords, indexing='ij')
 pdm = np.zeros(3)
-tmp = np.trapezoid(np.abs(wf_grid)**2*X_g,x_coords,axis=0)
-tmp1 = np.trapezoid(tmp, y_coords, axis=0)
-pdm[0] = np.trapezoid(tmp1, z_coords)
-tmp = np.trapezoid(np.abs(wf_grid)**2*Y_g,y_coords,axis=1)
-tmp1 = np.trapezoid(tmp, x_coords, axis=0)
-pdm[1] = np.trapezoid(tmp1, z_coords)
-tmp = np.trapezoid(np.abs(wf_grid)**2*Z_g,z_coords,axis=2)
-tmp1 = np.trapezoid(tmp, x_coords, axis=0)
-pdm[2] = np.trapezoid(tmp1, y_coords)
+tmp = np.trapz(np.abs(wf_grid)**2*X_g,x_coords,axis=0)
+tmp1 = np.trapz(tmp, y_coords, axis=0)
+pdm[0] = np.trapz(tmp1, z_coords)
+tmp = np.trapz(np.abs(wf_grid)**2*Y_g,y_coords,axis=1)
+tmp1 = np.trapz(tmp, x_coords, axis=0)
+pdm[1] = np.trapz(tmp1, z_coords)
+tmp = np.trapz(np.abs(wf_grid)**2*Z_g,z_coords,axis=2)
+tmp1 = np.trapz(tmp, x_coords, axis=0)
+pdm[2] = np.trapz(tmp1, y_coords)
 print('Permanet dipole moment (a.u.) is', pdm)
 # ----------------------------------------------------------------------------
 #             Set up the frame of the figure
@@ -385,8 +385,8 @@ for l in range(0, l_max+1):
         int_00 = psi * \
             np.conjugate(Y_lm(l=l, m=m, theta=theta_m,
                               phi=phi_m))*np.sin(theta_m)
-        tmp = np.trapezoid(int_00, phi, axis=1)
-        tmp1 = np.trapezoid(tmp, theta)
+        tmp = np.trapz(int_00, phi, axis=1)
+        tmp1 = np.trapz(tmp, theta)
         if np.abs(tmp1) > 1.e-2:
             m_set.append(m)
             tmp1 = np.round(tmp1, decimals=3)
