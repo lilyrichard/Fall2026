@@ -24,6 +24,11 @@ parser.add_argument('--plot2D', default=False, choices=['True', 'False'], help='
 parser.add_argument('--plane', default='xz',choices=['xy', 'xz', 'yz'],
                     help='Plane to plot 2D wave function.')
 parser.add_argument('--plot3D', default=False, choices=['True', 'False'], help='Visualize 3D wave function')
+parser.add_argument('--xyz', default=None, help='XYZ file to overlay as a molecular skeleton.')
+parser.add_argument('--plotSkeleton', default=False, choices=['True', 'False'],
+                    help='Overlay the molecular skeleton from --xyz in the 3D plot.')
+parser.add_argument('--xyz-unit', default='angstrom', choices=['angstrom', 'bohr'],
+                    help='Coordinate unit in the XYZ file.')
 parser.add_argument('--iso', type=float, default=0.1,
                     help='Value for isosurface of the wave function.')
 parser.add_argument('--outwf', default=False, choices=['True', 'False'],
@@ -38,6 +43,7 @@ l_max = args.lmax
 match_tol = args.tol
 Plot2D = args.plot2D
 Plot3D = args.plot3D
+PlotSkeleton = args.plotSkeleton == 'True'
 iso_val = abs(args.iso)
 plane = args.plane
 print_output = args.outwf
@@ -139,6 +145,68 @@ def read_dx_wf(dx_file_path):
                 in_data_section = True
 
     return grid_counts, grid_origin, grid_spacing, grid_values
+
+
+def read_xyz(xyz_file_path):
+    with open(xyz_file_path, 'r') as xyz_file:
+        lines = [line.strip() for line in xyz_file if line.strip()]
+    if not lines:
+        raise ValueError('The XYZ file is empty.')
+    try:
+        atom_count = int(lines[0])
+    except ValueError as error:
+        raise ValueError('The first line of the XYZ file must be an atom count.') from error
+    atom_lines = lines[2:2 + atom_count]
+    if len(atom_lines) != atom_count:
+        raise ValueError('The XYZ file contains fewer atoms than declared.')
+    atoms = []
+    coordinates = []
+    for line in atom_lines:
+        fields = line.split()
+        if len(fields) < 4:
+            raise ValueError(f'Invalid XYZ atom line: {line}')
+        atoms.append(fields[0])
+        coordinates.append([float(value) for value in fields[1:4]])
+    return atoms, np.asarray(coordinates, dtype=float)
+
+
+def add_molecular_skeleton(fig, xyz_file_path, xyz_unit):
+    covalent_radii = {
+        'H': 0.31, 'C': 0.76, 'N': 0.71, 'O': 0.66, 'F': 0.57,
+        'P': 1.07, 'S': 1.05, 'Cl': 1.02, 'Br': 1.20, 'I': 1.39,
+    }
+    atom_colors = {
+        'H': '#f5f5f5', 'C': '#444444', 'N': '#3976d2', 'O': '#d64545',
+        'F': '#55a85a', 'P': '#e39b36', 'S': '#e0c341', 'Cl': '#55a85a',
+        'Br': '#a34f32', 'I': '#8a4db8',
+    }
+    atoms, coordinates = read_xyz(xyz_file_path)
+    if xyz_unit == 'angstrom':
+        coordinates = coordinates / 0.529177210903
+
+    bond_x = []
+    bond_y = []
+    bond_z = []
+    for first in range(len(atoms)):
+        for second in range(first + 1, len(atoms)):
+            first_radius = covalent_radii.get(atoms[first], 0.77)
+            second_radius = covalent_radii.get(atoms[second], 0.77)
+            distance = np.linalg.norm(coordinates[first] - coordinates[second])
+            if distance <= 1.25 * (first_radius + second_radius):
+                bond_x.extend([coordinates[first, 0], coordinates[second, 0], None])
+                bond_y.extend([coordinates[first, 1], coordinates[second, 1], None])
+                bond_z.extend([coordinates[first, 2], coordinates[second, 2], None])
+
+    if bond_x:
+        fig.add_trace(go.Scatter3d(
+            x=bond_x, y=bond_y, z=bond_z, mode='lines',
+            line=dict(color='#777777', width=6), name='bonds', hoverinfo='skip'))
+    fig.add_trace(go.Scatter3d(
+        x=coordinates[:, 0], y=coordinates[:, 1], z=coordinates[:, 2],
+        mode='markers+text', text=atoms, textposition='top center',
+        marker=dict(size=7, color=[atom_colors.get(atom, '#888888') for atom in atoms],
+                    line=dict(color='#222222', width=1)),
+        name='atoms', hovertemplate='%{text}<extra></extra>'))
 
 
 # Read grid and electron wave functions values
@@ -262,6 +330,10 @@ if Plot3D:
         colorscale='Portland',
         caps=dict(x_show=False, y_show=False, z_show=False)
         ))
+    if PlotSkeleton:
+        if args.xyz is None:
+            parser.error('--xyz is required when --plotSkeleton is True.')
+        add_molecular_skeleton(fig, args.xyz, args.xyz_unit)
     fig.update_layout(
         autosize=False,
         minreducedwidth=100,
@@ -278,9 +350,14 @@ if Plot3D:
             zaxis_title='z (bohr)'),
         scene_camera_eye=dict(x=1.6, y=1.6, z=1.2),        
     )
-    fname = dir + "orb" + str(st) + ".pdf"
-    print('Saving orbital isosurfaces as', fname)
-    fig.write_image(fname)
+    if PlotSkeleton:
+        fname = dir + "orb" + str(st) + "_skeleton.html"
+        print('Saving orbital isosurfaces and molecular skeleton as', fname)
+        fig.write_html(fname)
+    else:
+        fname = dir + "orb" + str(st) + ".pdf"
+        print('Saving orbital isosurfaces as', fname)
+        fig.write_image(fname)
     print('Done.')
     # fig.show()
 
