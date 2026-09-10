@@ -7,6 +7,8 @@ import argparse
 import matplotlib as mpl
 import plotly.graph_objects as go
 
+BOHR_TO_ANGSTROM = 0.5291772109
+
 # User input
 parser = argparse.ArgumentParser(
     description='Select the state, charge, and spin of the orbital.')
@@ -269,16 +271,24 @@ if Plot2D:
     print('Done.')
 
 if Plot3D:
-    x_plots = np.linspace(x_coords[0], x_coords[-1], 100)
-    y_plots = np.linspace(y_coords[0], y_coords[-1], 100)
-    z_plots = np.linspace(z_coords[0], z_coords[-1], 100)
+    plot_min_ang = -5.0
+    plot_max_ang = 5.0
+    x_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
+                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
+    y_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
+                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
+    z_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
+                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
     Xp, Yp, Zp = np.meshgrid(x_plots, y_plots, z_plots, indexing='ij')
     f = np.asarray(wf_interpol((Xp, Yp, Zp)))
+    Xp_ang = Xp * BOHR_TO_ANGSTROM
+    Yp_ang = Yp * BOHR_TO_ANGSTROM
+    Zp_ang = Zp * BOHR_TO_ANGSTROM
 
     fig = go.Figure(data=go.Isosurface(
-        x=Xp.flatten(),
-        y=Yp.flatten(),
-        z=Zp.flatten(),
+        x=Xp_ang.flatten(),
+        y=Yp_ang.flatten(),
+        z=Zp_ang.flatten(),
         value=f.flatten(),
         surface_fill=0.6,
         isomin=-iso_val,
@@ -297,12 +307,12 @@ if Plot3D:
         height=500,
         margin=dict(t=0, l=0, r=0, b=0),
         scene = dict(
-            xaxis=dict(nticks=5, range=[x_plots[0], x_plots[-1]],
-                       title=dict(text='x (bohr)', font=dict(size=24, family='Old Standard TT, serif'))),
-            yaxis=dict(nticks=5, range=[y_plots[0], y_plots[-1]],
-                       title=dict(text='y (bohr)', font=dict(size=24, family='Old Standard TT, serif'))),
-            zaxis=dict(nticks=5, range=[z_plots[0], z_plots[-1]],
-                       title=dict(text='z (bohr)', font=dict(size=24, family='Old Standard TT, serif')))),
+            xaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
+                       title=dict(text='x (Angstrom)', font=dict(size=24, family='Old Standard TT, serif'))),
+            yaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
+                       title=dict(text='y (Angstrom)', font=dict(size=24, family='Old Standard TT, serif'))),
+            zaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
+                       title=dict(text='z (Angstrom)', font=dict(size=24, family='Old Standard TT, serif')))),
         scene_camera_eye=dict(x=1.6, y=1.6, z=1.2),        
     )
     fname = dir + "orb" + str(st) + ".pdf"
@@ -343,7 +353,7 @@ if PlotMolecule:
         'F': '#55a630', 'P': '#f28c28', 'S': '#e1c542', 'Cl': '#55a630',
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
-    plot_coordinates = coordinates * (1.8897259886 if Plot3D else 1.0)
+    plot_coordinates = coordinates
     atom_sizes = {element: 16 * radius for element, radius in radii.items()}
     molecule_traces = []
 
@@ -383,17 +393,19 @@ if PlotMolecule:
     if Plot3D:
         molecule_traces.insert(0, fig.data[0])
     molecule_fig = go.Figure(data=molecule_traces)
-    axis_labels = ('x (bohr)', 'y (bohr)', 'z (bohr)') if Plot3D else (
-        'x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
+    axis_labels = ('x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
     molecule_fig.update_layout(
-        title='Fenchone at maximum TI rate' + (' with orbital isosurface' if Plot3D else ''),
+        title='Camphor at maximum TI rate' + (' with orbital isosurface' if Plot3D else ''),
         width=850,
         height=700,
         margin=dict(t=45, l=0, r=0, b=0),
         scene=dict(
-            xaxis_title=axis_labels[0],
-            yaxis_title=axis_labels[1],
-            zaxis_title=axis_labels[2],
+            xaxis=dict(title=axis_labels[0],
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
+            yaxis=dict(title=axis_labels[1],
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
+            zaxis=dict(title=axis_labels[2],
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
             aspectmode='data',
             camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
         ),
