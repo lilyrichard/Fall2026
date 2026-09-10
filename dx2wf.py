@@ -285,6 +285,7 @@ if Plot3D:
         isomax=iso_val,
         surface_count=2, # number of isosurfaces, 2 by default: only min and max
         showscale=False,
+        opacity=0.45,
         colorscale='Portland',
         caps=dict(x_show=False, y_show=False, z_show=False)
         ))
@@ -342,6 +343,7 @@ if PlotMolecule:
         'F': '#55a630', 'P': '#f28c28', 'S': '#e1c542', 'Cl': '#55a630',
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
+    plot_coordinates = coordinates * (1.8897259886 if Plot3D else 1.0)
     atom_sizes = {element: 16 * radius for element, radius in radii.items()}
     molecule_traces = []
 
@@ -352,9 +354,9 @@ if PlotMolecule:
             bond_limit = 1.25 * (radii.get(atoms[i], 0.77) + radii.get(atoms[j], 0.77))
             if distance <= bond_limit:
                 molecule_traces.append(go.Scatter3d(
-                    x=[coordinates[i, 0], coordinates[j, 0]],
-                    y=[coordinates[i, 1], coordinates[j, 1]],
-                    z=[coordinates[i, 2], coordinates[j, 2]],
+                    x=[plot_coordinates[i, 0], plot_coordinates[j, 0]],
+                    y=[plot_coordinates[i, 1], plot_coordinates[j, 1]],
+                    z=[plot_coordinates[i, 2], plot_coordinates[j, 2]],
                     mode='lines',
                     line=dict(color='#777777', width=7),
                     hoverinfo='skip',
@@ -362,9 +364,9 @@ if PlotMolecule:
                 ))
 
     molecule_traces.append(go.Scatter3d(
-        x=coordinates[:, 0],
-        y=coordinates[:, 1],
-        z=coordinates[:, 2],
+        x=plot_coordinates[:, 0],
+        y=plot_coordinates[:, 1],
+        z=plot_coordinates[:, 2],
         mode='markers+text',
         text=atoms,
         textposition='top center',
@@ -378,16 +380,20 @@ if PlotMolecule:
         showlegend=False,
     ))
 
+    if Plot3D:
+        molecule_traces.insert(0, fig.data[0])
     molecule_fig = go.Figure(data=molecule_traces)
+    axis_labels = ('x (bohr)', 'y (bohr)', 'z (bohr)') if Plot3D else (
+        'x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
     molecule_fig.update_layout(
-        title='Fenchone at maximum TI rate',
+        title='Fenchone at maximum TI rate' + (' with orbital isosurface' if Plot3D else ''),
         width=850,
         height=700,
         margin=dict(t=45, l=0, r=0, b=0),
         scene=dict(
-            xaxis_title='x (Angstrom)',
-            yaxis_title='y (Angstrom)',
-            zaxis_title='z (Angstrom)',
+            xaxis_title=axis_labels[0],
+            yaxis_title=axis_labels[1],
+            zaxis_title=axis_labels[2],
             aspectmode='data',
             camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
         ),
