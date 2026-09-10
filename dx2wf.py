@@ -10,6 +10,20 @@ import plotly.graph_objects as go
 # User input
 parser = argparse.ArgumentParser(
     description='Select the state, charge, and spin of the orbital.')
+
+
+def parse_bool(value):
+    """Parse the string boolean values used by the command-line interface."""
+    if isinstance(value, bool):
+        return value
+    value = value.strip().lower()
+    if value == 'true':
+        return True
+    if value == 'false':
+        return False
+    raise argparse.ArgumentTypeError("expected 'True' or 'False'")
+
+
 parser.add_argument('--st', type=int, required=True,
                     help='Target state number.')
 parser.add_argument('--q', type=int, default=0, help='Target charge state.')
@@ -20,15 +34,19 @@ parser.add_argument('--lmax', type=int, default=10,
                     help='Maximum l of orbitals.')
 parser.add_argument('--tol', type=float, default=1.e-7,
                     help='Asymptotic value for matching wave function.')
-parser.add_argument('--plot2D', default=False, choices=['True', 'False'], help='Plot 2D wave function')
+parser.add_argument('--plot2D', type=parse_bool, default=False,
+                    choices=[True, False], help='Plot 2D wave function')
 parser.add_argument('--plane', default='xz',choices=['xy', 'xz', 'yz'],
                     help='Plane to plot 2D wave function.')
-parser.add_argument('--plot3D', default=False, choices=['True', 'False'], help='Visualize 3D wave function')
+parser.add_argument('--plot3D', type=parse_bool, default=False,
+                    choices=[True, False], help='Visualize 3D wave function')
 parser.add_argument('--iso', type=float, default=0.1,
                     help='Value for isosurface of the wave function.')
-parser.add_argument('--outwf', default=False, choices=['True', 'False'],
+parser.add_argument('--outwf', type=parse_bool, default=False,
+                    choices=[True, False],
                     help='Output the wave function on the grid.')
-parser.add_argument('--plotMolecule', default='False', choices=['True', 'False'],
+parser.add_argument('--plotMolecule', type=parse_bool, default=False,
+                    choices=[True, False],
                     help='Plot the molecule from an XYZ file as a 3D ball-and-stick model.')
 parser.add_argument('--xyz', default='fenchone_cat_maxTIR_rotation.xyz',
                     help='XYZ file used for the molecular ball-and-stick plot.')
@@ -47,7 +65,7 @@ Plot3D = args.plot3D
 iso_val = abs(args.iso)
 plane = args.plane
 print_output = args.outwf
-PlotMolecule = args.plotMolecule == 'True'
+PlotMolecule = args.plotMolecule
 xyz_file_path = args.xyz
 if k == 1:
     choose_spin = 'up'
@@ -251,11 +269,11 @@ if Plot2D:
     print('Done.')
 
 if Plot3D:
-    x_plots = np.linspace(-10., 10., 100)
-    y_plots = np.linspace(-10., 10., 100)
-    z_plots = np.linspace(-10., 10., 100)
+    x_plots = np.linspace(x_coords[0], x_coords[-1], 100)
+    y_plots = np.linspace(y_coords[0], y_coords[-1], 100)
+    z_plots = np.linspace(z_coords[0], z_coords[-1], 100)
     Xp, Yp, Zp = np.meshgrid(x_plots, y_plots, z_plots, indexing='ij')
-    f = wf_interpol((Xp,Yp,Zp))
+    f = np.asarray(wf_interpol((Xp, Yp, Zp)))
 
     fig = go.Figure(data=go.Isosurface(
         x=Xp.flatten(),
@@ -278,12 +296,12 @@ if Plot3D:
         height=500,
         margin=dict(t=0, l=0, r=0, b=0),
         scene = dict(
-            xaxis = dict(nticks=5, range=[-7,7],titlefont=dict(size=24, family='Old Standard TT, serif')),
-            yaxis = dict(nticks=5, range=[-7,7],titlefont=dict(size=24, family='Old Standard TT, serif')),
-            zaxis = dict(nticks=5, range=[-7,7],titlefont=dict(size=24, family='Old Standard TT, serif')),
-            xaxis_title='x (bohr)',
-            yaxis_title='y (bohr)',
-            zaxis_title='z (bohr)'),
+            xaxis=dict(nticks=5, range=[x_plots[0], x_plots[-1]],
+                       title=dict(text='x (bohr)', font=dict(size=24, family='Old Standard TT, serif'))),
+            yaxis=dict(nticks=5, range=[y_plots[0], y_plots[-1]],
+                       title=dict(text='y (bohr)', font=dict(size=24, family='Old Standard TT, serif'))),
+            zaxis=dict(nticks=5, range=[z_plots[0], z_plots[-1]],
+                       title=dict(text='z (bohr)', font=dict(size=24, family='Old Standard TT, serif')))),
         scene_camera_eye=dict(x=1.6, y=1.6, z=1.2),        
     )
     fname = dir + "orb" + str(st) + ".pdf"
