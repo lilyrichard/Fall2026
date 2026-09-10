@@ -28,6 +28,12 @@ parser.add_argument('--iso', type=float, default=0.1,
                     help='Value for isosurface of the wave function.')
 parser.add_argument('--outwf', default=False, choices=['True', 'False'],
                     help='Output the wave function on the grid.')
+parser.add_argument('--plotMolecule', default='False', choices=['True', 'False'],
+                    help='Plot the molecule from an XYZ file as a 3D ball-and-stick model.')
+parser.add_argument('--xyz', default='fenchone_cat_maxTIR_rotation.xyz',
+                    help='XYZ file used for the molecular ball-and-stick plot.')
+parser.add_argument('--molout', default='',
+                    help='Output HTML file for the molecular plot. Defaults beside the XYZ file.')
 # Parse the command-line arguments
 args = parser.parse_args()
 st = args.st
@@ -41,6 +47,8 @@ Plot3D = args.plot3D
 iso_val = abs(args.iso)
 plane = args.plane
 print_output = args.outwf
+PlotMolecule = args.plotMolecule == 'True'
+xyz_file_path = args.xyz
 if k == 1:
     choose_spin = 'up'
 elif k == 2:
@@ -283,6 +291,96 @@ if Plot3D:
     fig.write_image(fname)
     print('Done.')
     # fig.show()
+
+
+def read_xyz(filename):
+    """Read atom symbols and Cartesian coordinates from an XYZ file."""
+    with open(filename, 'r') as xyz_file:
+        lines = [line.strip() for line in xyz_file if line.strip()]
+    atom_count = int(lines[0])
+    atom_lines = lines[2:2 + atom_count]
+    atoms = []
+    coordinates = []
+    for line in atom_lines:
+        values = line.split()
+        if len(values) < 4:
+            raise ValueError(f'Invalid XYZ atom line: {line}')
+        atoms.append(values[0].capitalize())
+        coordinates.append([float(values[1]), float(values[2]), float(values[3])])
+    if len(atoms) != atom_count:
+        raise ValueError(f'Expected {atom_count} atoms in {filename}, found {len(atoms)}')
+    return atoms, np.asarray(coordinates, dtype=float)
+
+
+if PlotMolecule:
+    print('Reading molecular structure from', xyz_file_path)
+    atoms, coordinates = read_xyz(xyz_file_path)
+    radii = {
+        'H': 0.31, 'C': 0.76, 'N': 0.71, 'O': 0.66, 'F': 0.57,
+        'P': 1.07, 'S': 1.05, 'Cl': 1.02, 'Br': 1.20, 'I': 1.39,
+    }
+    colors = {
+        'H': '#f5f5f5', 'C': '#3b3b3b', 'N': '#2f6fed', 'O': '#e53935',
+        'F': '#55a630', 'P': '#f28c28', 'S': '#e1c542', 'Cl': '#55a630',
+        'Br': '#8f2d56', 'I': '#6a4c93',
+    }
+    atom_sizes = {element: 16 * radius for element, radius in radii.items()}
+    molecule_traces = []
+
+    # Infer bonds from the sum of covalent radii with a modest tolerance.
+    for i in range(len(atoms)):
+        for j in range(i + 1, len(atoms)):
+            distance = np.linalg.norm(coordinates[i] - coordinates[j])
+            bond_limit = 1.25 * (radii.get(atoms[i], 0.77) + radii.get(atoms[j], 0.77))
+            if distance <= bond_limit:
+                molecule_traces.append(go.Scatter3d(
+                    x=[coordinates[i, 0], coordinates[j, 0]],
+                    y=[coordinates[i, 1], coordinates[j, 1]],
+                    z=[coordinates[i, 2], coordinates[j, 2]],
+                    mode='lines',
+                    line=dict(color='#777777', width=7),
+                    hoverinfo='skip',
+                    showlegend=False,
+                ))
+
+    molecule_traces.append(go.Scatter3d(
+        x=coordinates[:, 0],
+        y=coordinates[:, 1],
+        z=coordinates[:, 2],
+        mode='markers+text',
+        text=atoms,
+        textposition='top center',
+        hovertemplate='%{text}<br>x=%{x:.3f}<br>y=%{y:.3f}<br>z=%{z:.3f}<extra></extra>',
+        marker=dict(
+            size=[atom_sizes.get(element, 12) for element in atoms],
+            color=[colors.get(element, '#bdbdbd') for element in atoms],
+            line=dict(color='#222222', width=1),
+            opacity=0.98,
+        ),
+        showlegend=False,
+    ))
+
+    molecule_fig = go.Figure(data=molecule_traces)
+    molecule_fig.update_layout(
+        title='Fenchone at maximum TI rate',
+        width=850,
+        height=700,
+        margin=dict(t=45, l=0, r=0, b=0),
+        scene=dict(
+            xaxis_title='x (Angstrom)',
+            yaxis_title='y (Angstrom)',
+            zaxis_title='z (Angstrom)',
+            aspectmode='data',
+            camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
+        ),
+    )
+    if args.molout:
+        molecule_file_path = args.molout
+    else:
+        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick.html'
+    print('Saving molecular ball-and-stick model as', molecule_file_path)
+    molecule_fig.write_html(molecule_file_path, include_plotlyjs=True)
+    print('Done.')
 
 def wf_sph(r, theta, phi):
     x = r*np.sin(theta)*np.cos(phi)
