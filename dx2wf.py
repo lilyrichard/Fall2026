@@ -28,7 +28,7 @@ def parse_bool(value):
 
 parser.add_argument('--st', type=int, required=True,
                     help='Target state number.')
-parser.add_argument('--q', type=int, default=0, help='Target charge state.')
+parser.add_argument('--q', type=int, default=1, help='Target charge state.')
 parser.add_argument('--k', type=int, default=1,
                     choices=[1, 2], help='spin: up=1, dn=2.')
 parser.add_argument('--dir', default='static/', help='Path to static.')
