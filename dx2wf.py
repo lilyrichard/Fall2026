@@ -43,7 +43,7 @@ parser.add_argument('--plane', default='xz',choices=['xy', 'xz', 'yz'],
                     help='Plane to plot 2D wave function.')
 parser.add_argument('--plot3D', type=parse_bool, default=False,
                     choices=[True, False], help='Visualize 3D wave function')
-parser.add_argument('--iso', type=float, default=0.1,
+parser.add_argument('--iso', type=float, default=0.05,
                     help='Value for isosurface of the wave function.')
 parser.add_argument('--outwf', type=parse_bool, default=False,
                     choices=[True, False],
