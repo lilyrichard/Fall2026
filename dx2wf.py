@@ -355,7 +355,7 @@ if PlotMolecule:
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
     plot_coordinates = coordinates
-    atom_size = 18
+    atom_size = 13
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
