@@ -355,7 +355,7 @@ if PlotMolecule:
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
     plot_coordinates = coordinates
-    atom_sizes = {element: 24 * radius for element, radius in radii.items()}
+    atom_size = 18
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
@@ -383,7 +383,7 @@ if PlotMolecule:
         textposition='top center',
         hovertemplate='%{text}<br>x=%{x:.3f}<br>y=%{y:.3f}<br>z=%{z:.3f}<extra></extra>',
         marker=dict(
-            size=[atom_sizes.get(element, 12) for element in atoms],
+            size=atom_size,
             color=[colors.get(element, '#bdbdbd') for element in atoms],
             line=dict(color='#222222', width=1),
             opacity=0.98,
