@@ -23,6 +23,7 @@ def parse_bool(value):
         return True
     if value == 'false':
         return False
+
     raise argparse.ArgumentTypeError("expected 'True' or 'False'")
 
 
@@ -354,7 +355,7 @@ if PlotMolecule:
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
     plot_coordinates = coordinates
-    atom_sizes = {element: 16 * radius for element, radius in radii.items()}
+    atom_sizes = {element: 24 * radius for element, radius in radii.items()}
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
