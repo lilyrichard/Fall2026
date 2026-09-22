@@ -400,13 +400,28 @@ if PlotMolecule:
         width=850,
         height=700,
         margin=dict(t=45, l=0, r=0, b=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         scene=dict(
+            bgcolor='rgba(0,0,0,0)',
             xaxis=dict(title=axis_labels[0],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       showbackground=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)'),
             yaxis=dict(title=axis_labels[1],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       showbackground=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)'),
             zaxis=dict(title=axis_labels[2],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
+                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       showbackground=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)'),
             aspectmode='data',
             camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
         ),
@@ -414,7 +429,7 @@ if PlotMolecule:
     if args.molout:
         molecule_file_path = args.molout
     else:
-        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick.html'
+        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick_no_background.html'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
     molecule_fig.write_html(molecule_file_path, include_plotlyjs=True)
     print('Done.')
