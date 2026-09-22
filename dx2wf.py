@@ -426,6 +426,15 @@ if PlotMolecule:
     ]
     molecule_traces.extend(reference_axis_traces)
 
+    molecule_min = np.min(coordinates, axis=0)
+    molecule_max = np.max(coordinates, axis=0)
+    padding = 0.6
+    molecule_ranges = [
+        [molecule_min[0] - padding, molecule_max[0] + padding],
+        [molecule_min[1] - padding, molecule_max[1] + padding],
+        [molecule_min[2] - padding, molecule_max[2] + padding],
+    ]
+
     molecule_fig = go.Figure(data=molecule_traces)
     molecule_fig.update_layout(
         width=1200,
@@ -436,7 +445,7 @@ if PlotMolecule:
         scene=dict(
             bgcolor='rgba(0,0,0,0)',
             xaxis=dict(title='',
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       range=molecule_ranges[0],
                        showbackground=False,
                        showspikes=False,
                        showticklabels=False,
@@ -445,7 +454,7 @@ if PlotMolecule:
                        zerolinecolor='rgba(0,0,0,0)',
                        tickfont=dict(color='rgba(0,0,0,0)')),
             yaxis=dict(title='',
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       range=molecule_ranges[1],
                        showbackground=False,
                        showspikes=False,
                        showticklabels=False,
@@ -454,7 +463,7 @@ if PlotMolecule:
                        zerolinecolor='rgba(0,0,0,0)',
                        tickfont=dict(color='rgba(0,0,0,0)')),
             zaxis=dict(title='',
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None,
+                       range=molecule_ranges[2],
                        showbackground=False,
                        showspikes=False,
                        showticklabels=False,
@@ -462,15 +471,20 @@ if PlotMolecule:
                        gridcolor='rgba(0,0,0,0)',
                        zerolinecolor='rgba(0,0,0,0)',
                        tickfont=dict(color='rgba(0,0,0,0)')),
-            aspectmode='data',
-            camera=dict(eye=dict(x=1.701, y=1.043, z=0.249)),
+            aspectmode='manual',
+            aspectratio=dict(x=1.0, y=1.0, z=0.75),
+            camera=dict(
+                eye=dict(x=1.701, y=1.043, z=0.249),
+                center=dict(x=0, y=0, z=0),
+                projection=dict(type='perspective'),
+            ),
         ),
     )
     if args.molout:
         molecule_file_path = args.molout
     else:
         stem = xyz_file_path.rsplit('.', 1)[0]
-        molecule_file_path = f'{stem}_st{st:05d}_ball_stick_no_background.pdf'
+        molecule_file_path = f'{stem}_st{st:05d}_ball_stick.pdf'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
     molecule_fig.write_image(molecule_file_path, scale=2)
     print('Done.')
