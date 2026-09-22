@@ -393,6 +393,39 @@ if PlotMolecule:
 
     if Plot3D:
         molecule_traces.insert(0, fig.data[0])
+
+    # Small XYZ reference axis in the lower-left corner of the scene.
+    reference_axis_traces = [
+        go.Scatter3d(
+            x=[-4.3, -2.2],
+            y=[-4.3, -4.3],
+            z=[-4.3, -4.3],
+            mode='lines',
+            line=dict(color='red', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[-4.3, -4.3],
+            y=[-4.3, -2.2],
+            z=[-4.3, -4.3],
+            mode='lines',
+            line=dict(color='green', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[-4.3, -4.3],
+            y=[-4.3, -4.3],
+            z=[-4.3, -2.2],
+            mode='lines',
+            line=dict(color='blue', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+    ]
+    molecule_traces.extend(reference_axis_traces)
+
     molecule_fig = go.Figure(data=molecule_traces)
     axis_labels = ('x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
     molecule_fig.update_layout(
