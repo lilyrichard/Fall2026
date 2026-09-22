@@ -54,7 +54,7 @@ parser.add_argument('--plotMolecule', type=parse_bool, default=False,
 parser.add_argument('--xyz', default='fenchone_cat_maxTIR_rotation.xyz',
                     help='XYZ file used for the molecular ball-and-stick plot.')
 parser.add_argument('--molout', default='',
-                    help='Output HTML file for the molecular plot. Defaults beside the XYZ file.')
+                    help='Output PDF for the molecular plot. Defaults beside the XYZ file and include the --st state index.')
 # Parse the command-line arguments
 args = parser.parse_args()
 st = args.st
@@ -355,7 +355,7 @@ if PlotMolecule:
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
     plot_coordinates = coordinates
-    atom_size = 8
+    atom_size = 6
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
@@ -427,12 +427,10 @@ if PlotMolecule:
     molecule_traces.extend(reference_axis_traces)
 
     molecule_fig = go.Figure(data=molecule_traces)
-    axis_labels = ('x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
     molecule_fig.update_layout(
-        title='Camphor at maximum TI rate' + (' with orbital isosurface' if Plot3D else ''),
-        width=850,
-        height=700,
-        margin=dict(t=45, l=0, r=0, b=0),
+        width=1200,
+        height=900,
+        margin=dict(t=0, l=0, r=0, b=0),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         scene=dict(
@@ -465,13 +463,14 @@ if PlotMolecule:
                        zerolinecolor='rgba(0,0,0,0)',
                        tickfont=dict(color='rgba(0,0,0,0)')),
             aspectmode='data',
-            camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
+            camera=dict(eye=dict(x=1.701, y=1.043, z=0.249)),
         ),
     )
     if args.molout:
         molecule_file_path = args.molout
     else:
-        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick_no_background.pdf'
+        stem = xyz_file_path.rsplit('.', 1)[0]
+        molecule_file_path = f'{stem}_st{st:05d}_ball_stick_no_background.pdf'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
     molecule_fig.write_image(molecule_file_path, scale=2)
     print('Done.')
