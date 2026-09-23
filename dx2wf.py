@@ -393,81 +393,103 @@ if PlotMolecule:
 
     if Plot3D:
         molecule_traces.insert(0, fig.data[0])
+
+    # Small XYZ reference axis in the lower-left corner of the scene.
+    reference_axis_traces = [
+        go.Scatter3d(
+            x=[-4.3, -2.2],
+            y=[-4.3, -4.3],
+            z=[-4.3, -4.3],
+            mode='lines',
+            line=dict(color='red', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[-4.3, -4.3],
+            y=[-4.3, -2.2],
+            z=[-4.3, -4.3],
+            mode='lines',
+            line=dict(color='green', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[-4.3, -4.3],
+            y=[-4.3, -4.3],
+            z=[-4.3, -2.2],
+            mode='lines',
+            line=dict(color='blue', width=4),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+    ]
+    molecule_traces.extend(reference_axis_traces)
+
+    molecule_min = np.min(coordinates, axis=0)
+    molecule_max = np.max(coordinates, axis=0)
+    padding = 0.6
+    molecule_ranges = [
+        [molecule_min[0] - padding, molecule_max[0] + padding],
+        [molecule_min[1] - padding, molecule_max[1] + padding],
+        [molecule_min[2] - padding, molecule_max[2] + padding],
+    ]
+
     molecule_fig = go.Figure(data=molecule_traces)
-    axis_labels = ('x (Angstrom)', 'y (Angstrom)', 'z (Angstrom)')
     molecule_fig.update_layout(
-        title='Camphor at maximum TI rate' + (' with orbital isosurface' if Plot3D else ''),
-        width=850,
-        height=700,
-        margin=dict(t=45, l=0, r=0, b=0),
+        width=1200,
+        height=900,
+        margin=dict(t=0, l=0, r=0, b=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         scene=dict(
-            xaxis=dict(title=axis_labels[0],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
-            yaxis=dict(title=axis_labels[1],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
-            zaxis=dict(title=axis_labels[2],
-                       range=[plot_min_ang, plot_max_ang] if Plot3D else None),
-            aspectmode='data',
-            camera=dict(eye=dict(x=1.6, y=1.6, z=1.2)),
+            bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(title='',
+                       range=molecule_ranges[0],
+                       showbackground=False,
+                       showspikes=False,
+                       showticklabels=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)',
+                       tickfont=dict(color='rgba(0,0,0,0)')),
+            yaxis=dict(title='',
+                       range=molecule_ranges[1],
+                       showbackground=False,
+                       showspikes=False,
+                       showticklabels=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)',
+                       tickfont=dict(color='rgba(0,0,0,0)')),
+            zaxis=dict(title='',
+                       range=molecule_ranges[2],
+                       showbackground=False,
+                       showspikes=False,
+                       showticklabels=False,
+                       backgroundcolor='rgba(0,0,0,0)',
+                       gridcolor='rgba(0,0,0,0)',
+                       zerolinecolor='rgba(0,0,0,0)',
+                       tickfont=dict(color='rgba(0,0,0,0)')),
+            aspectmode='manual',
+            aspectratio=dict(x=1.0, y=1.0, z=0.75),
+            camera=dict(
+                eye=dict(x=1.701, y=1.043, z=0.249),
+                center=dict(x=0, y=0, z=0),
+                projection=dict(type='perspective'),
+            ),
         ),
     )
-    camera_eye_script = r"""
-    (function() {
-        function getEye(gd) {
-            const scene = gd && gd.layout && gd.layout.scene ? gd.layout.scene : {};
-            const camera = scene.camera || {};
-            const eye = camera.eye || {x: 1.6, y: 1.6, z: 1.2};
-            return {
-                x: Number(eye.x) || 1.6,
-                y: Number(eye.y) || 1.6,
-                z: Number(eye.z) || 1.2,
-            };
-        }
 
-        function updateReadout(gd) {
-            const readout = document.getElementById('camera-eye-readout');
-            if (!readout || !gd) return;
-            const eye = getEye(gd);
-            readout.textContent = 'camera eye: x=' + eye.x.toFixed(3) + ', y=' + eye.y.toFixed(3) + ', z=' + eye.z.toFixed(3);
-        }
-
-        const plotDivs = document.querySelectorAll('.js-plotly-plot');
-        const gd = plotDivs.length ? plotDivs[plotDivs.length - 1] : null;
-        if (!gd) return;
-
-        const readout = document.createElement('div');
-        readout.id = 'camera-eye-readout';
-        readout.style.position = 'fixed';
-        readout.style.top = '12px';
-        readout.style.right = '12px';
-        readout.style.zIndex = '10000';
-        readout.style.padding = '8px 10px';
-        readout.style.borderRadius = '8px';
-        readout.style.background = 'rgba(20, 20, 20, 0.9)';
-        readout.style.color = '#ffffff';
-        readout.style.font = '12px/1.4 monospace';
-        readout.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
-        readout.style.pointerEvents = 'none';
-        document.body.appendChild(readout);
-
-        updateReadout(gd);
-        gd.on('plotly_relayout', function() {
-            const eye = getEye(gd);
-            if (eye && eye.x !== undefined && eye.y !== undefined && eye.z !== undefined) {
-                updateReadout(gd);
-            }
-        });
-    })();
-    """
     if args.molout:
         molecule_file_path = args.molout
     else:
-        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick.html'
-        molecule_file_path2 = xyz_file_path.rsplit('.', 1)[0] + f'_st{st:05d}' + '_ball_stick.pdf'
+        stem = xyz_file_path.rsplit('.', 1)[0]
+        molecule_file_path = f'{stem}_st{st:05d}_ball_stick.pdf'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
-    molecule_fig.write_html(molecule_file_path, include_plotlyjs=True, post_script=camera_eye_script)
-    molecule_fig.write_image(molecule_file_path2, scale=2)
+    molecule_fig.write_image(molecule_file_path, scale=2)
     print('Done.')
+
 
 def wf_sph(r, theta, phi):
     x = r*np.sin(theta)*np.cos(phi)
