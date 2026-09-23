@@ -391,7 +391,7 @@ if PlotMolecule:
         showlegend=False,
     ))
 
-    if Plot3D:
+    if Plot3D and 'fig' in globals():
         molecule_traces.insert(0, fig.data[0])
 
     # Small XYZ reference axis in the lower-left corner of the scene.
@@ -480,13 +480,67 @@ if PlotMolecule:
             ),
         ),
     )
+
+    camera_eye_script = r"""
+    (function() {
+        function getEye(gd) {
+            const scene = gd && gd.layout && gd.layout.scene ? gd.layout.scene : {};
+            const camera = scene.camera || {};
+            const eye = camera.eye || {x: 1.6, y: 1.6, z: 1.2};
+            return {
+                x: Number(eye.x) || 1.6,
+                y: Number(eye.y) || 1.6,
+                z: Number(eye.z) || 1.2,
+            };
+        }
+
+        function updateReadout(gd) {
+            const readout = document.getElementById('camera-eye-readout');
+            if (!readout || !gd) return;
+            const eye = getEye(gd);
+            readout.textContent = 'camera eye: x=' + eye.x.toFixed(3) + ', y=' + eye.y.toFixed(3) + ', z=' + eye.z.toFixed(3);
+        }
+
+        const plotDivs = document.querySelectorAll('.js-plotly-plot');
+        const gd = plotDivs.length ? plotDivs[plotDivs.length - 1] : null;
+        if (!gd) return;
+
+        const readout = document.createElement('div');
+        readout.id = 'camera-eye-readout';
+        readout.style.position = 'fixed';
+        readout.style.top = '12px';
+        readout.style.right = '12px';
+        readout.style.zIndex = '10000';
+        readout.style.padding = '8px 10px';
+        readout.style.borderRadius = '8px';
+        readout.style.background = 'rgba(20, 20, 20, 0.9)';
+        readout.style.color = '#ffffff';
+        readout.style.font = '12px/1.4 monospace';
+        readout.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
+        readout.style.pointerEvents = 'none';
+        document.body.appendChild(readout);
+
+        updateReadout(gd);
+        gd.on('plotly_relayout', function() {
+            const eye = getEye(gd);
+            if (eye && eye.x !== undefined && eye.y !== undefined && eye.z !== undefined) {
+                updateReadout(gd);
+            }
+        });
+    })();
+    """
+
     if args.molout:
-        molecule_file_path = args.molout
+        molecule_html_path = args.molout
+        molecule_pdf_path = args.molout.rsplit('.', 1)[0] + '.pdf'
     else:
         stem = xyz_file_path.rsplit('.', 1)[0]
-        molecule_file_path = f'{stem}_st{st:05d}_ball_stick.pdf'
-    print('Saving molecular ball-and-stick model as', molecule_file_path)
-    molecule_fig.write_image(molecule_file_path, scale=2)
+        molecule_html_path = f'{stem}_st{st:05d}_ball_stick.html'
+        molecule_pdf_path = f'{stem}_st{st:05d}_ball_stick.pdf'
+
+    print('Saving molecular ball-and-stick model as', molecule_html_path)
+    molecule_fig.write_html(molecule_html_path, include_plotlyjs=True, post_script=camera_eye_script)
+    molecule_fig.write_image(molecule_pdf_path, scale=2)
     print('Done.')
 
 def wf_sph(r, theta, phi):
