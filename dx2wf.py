@@ -463,8 +463,10 @@ if PlotMolecule:
         molecule_file_path = args.molout
     else:
         molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick.html'
+        molecule_file_path2 = xyz_file_path.rsplit('.', 1)[0] + f'_st{st:05d}' + '_ball_stick.pdf'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
     molecule_fig.write_html(molecule_file_path, include_plotlyjs=True, post_script=camera_eye_script)
+    molecule_fig.write_image(molecule_file_path2, scale=2)
     print('Done.')
 
 def wf_sph(r, theta, phi):
