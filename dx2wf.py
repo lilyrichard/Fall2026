@@ -394,45 +394,46 @@ if PlotMolecule:
     if Plot3D and 'fig' in globals():
         molecule_traces.insert(0, fig.data[0])
 
-    # Small XYZ reference axis in the lower-left corner of the scene.
-    reference_axis_traces = [
+    molecule_min = np.min(coordinates, axis=0)
+    molecule_max = np.max(coordinates, axis=0)
+    padding = 0.6
+    ref_origin = molecule_min - padding
+    ref_scale = 1.5
+    ref_axis_traces = [
         go.Scatter3d(
-            x=[-4.3, -2.2],
-            y=[-4.3, -4.3],
-            z=[-4.3, -4.3],
+            x=[ref_origin[0], ref_origin[0] + ref_scale],
+            y=[ref_origin[1], ref_origin[1]],
+            z=[ref_origin[2], ref_origin[2]],
             mode='lines',
             line=dict(color='red', width=4),
             hoverinfo='skip',
             showlegend=False,
         ),
         go.Scatter3d(
-            x=[-4.3, -4.3],
-            y=[-4.3, -2.2],
-            z=[-4.3, -4.3],
+            x=[ref_origin[0], ref_origin[0]],
+            y=[ref_origin[1], ref_origin[1] + ref_scale],
+            z=[ref_origin[2], ref_origin[2]],
             mode='lines',
             line=dict(color='green', width=4),
             hoverinfo='skip',
             showlegend=False,
         ),
         go.Scatter3d(
-            x=[-4.3, -4.3],
-            y=[-4.3, -4.3],
-            z=[-4.3, -2.2],
+            x=[ref_origin[0], ref_origin[0]],
+            y=[ref_origin[1], ref_origin[1]],
+            z=[ref_origin[2], ref_origin[2] + ref_scale],
             mode='lines',
             line=dict(color='blue', width=4),
             hoverinfo='skip',
             showlegend=False,
         ),
     ]
-    molecule_traces.extend(reference_axis_traces)
+    molecule_traces.extend(ref_axis_traces)
 
-    molecule_min = np.min(coordinates, axis=0)
-    molecule_max = np.max(coordinates, axis=0)
-    padding = 0.6
     molecule_ranges = [
-        [molecule_min[0] - padding, molecule_max[0] + padding],
-        [molecule_min[1] - padding, molecule_max[1] + padding],
-        [molecule_min[2] - padding, molecule_max[2] + padding],
+        [min(molecule_min[0], ref_origin[0]) - padding, max(molecule_max[0], ref_origin[0] + ref_scale) + padding],
+        [min(molecule_min[1], ref_origin[1]) - padding, max(molecule_max[1], ref_origin[1] + ref_scale) + padding],
+        [min(molecule_min[2], ref_origin[2]) - padding, max(molecule_max[2], ref_origin[2] + ref_scale) + padding],
     ]
 
     molecule_fig = go.Figure(data=molecule_traces)
