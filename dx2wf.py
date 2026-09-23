@@ -427,6 +427,36 @@ if PlotMolecule:
             hoverinfo='skip',
             showlegend=False,
         ),
+        go.Scatter3d(
+            x=[ref_origin[0] + ref_scale],
+            y=[ref_origin[1]],
+            z=[ref_origin[2]],
+            mode='text',
+            text=['x'],
+            textfont=dict(color='red', size=20),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[ref_origin[0]],
+            y=[ref_origin[1] + ref_scale],
+            z=[ref_origin[2] - .1*ref_scale],
+            mode='text',
+            text=['y'],
+            textfont=dict(color='green', size=20),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
+        go.Scatter3d(
+            x=[ref_origin[0]],
+            y=[ref_origin[1]],
+            z=[ref_origin[2] + .9*ref_scale],
+            mode='text',
+            text=['z'],
+            textfont=dict(color='blue', size=20),
+            hoverinfo='skip',
+            showlegend=False,
+        ),
     ]
     molecule_traces.extend(ref_axis_traces)
 
@@ -475,7 +505,7 @@ if PlotMolecule:
             aspectmode='manual',
             aspectratio=dict(x=1.0, y=1.0, z=0.75),
             camera=dict(
-                eye=dict(x=1.701, y=1.043, z=0.249),
+                eye=dict(x=2.008, y=-0.089, z=0.061),
                 center=dict(x=0, y=0, z=0),
                 projection=dict(type='perspective'),
             ),
