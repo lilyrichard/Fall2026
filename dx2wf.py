@@ -271,56 +271,6 @@ if Plot2D:
     fig.savefig(fname)
     print('Done.')
 
-if Plot3D:
-    plot_min_ang = -5.0
-    plot_max_ang = 5.0
-    x_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
-                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
-    y_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
-                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
-    z_plots = np.linspace(plot_min_ang / BOHR_TO_ANGSTROM,
-                          plot_max_ang / BOHR_TO_ANGSTROM, 100)
-    Xp, Yp, Zp = np.meshgrid(x_plots, y_plots, z_plots, indexing='ij')
-    f = np.asarray(wf_interpol((Xp, Yp, Zp)))
-    Xp_ang = Xp * BOHR_TO_ANGSTROM
-    Yp_ang = Yp * BOHR_TO_ANGSTROM
-    Zp_ang = Zp * BOHR_TO_ANGSTROM
-
-    fig = go.Figure(data=go.Isosurface(
-        x=Xp_ang.flatten(),
-        y=Yp_ang.flatten(),
-        z=Zp_ang.flatten(),
-        value=f.flatten(),
-        surface_fill=0.6,
-        isomin=-iso_val,
-        isomax=iso_val,
-        surface_count=2, # number of isosurfaces, 2 by default: only min and max
-        showscale=False,
-        opacity=0.45,
-        colorscale='Portland',
-        caps=dict(x_show=False, y_show=False, z_show=False)
-        ))
-    fig.update_layout(
-        autosize=False,
-        minreducedwidth=100,
-        minreducedheight=100,
-        width=600,
-        height=500,
-        margin=dict(t=0, l=0, r=0, b=0),
-        scene = dict(
-            xaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
-                       title=dict(text='x (Angstrom)', font=dict(size=24, family='Old Standard TT, serif'))),
-            yaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
-                       title=dict(text='y (Angstrom)', font=dict(size=24, family='Old Standard TT, serif'))),
-            zaxis=dict(nticks=5, range=[plot_min_ang, plot_max_ang],
-                       title=dict(text='z (Angstrom)', font=dict(size=24, family='Old Standard TT, serif')))),
-        scene_camera_eye=dict(x=1.6, y=1.6, z=1.2),        
-    )
-    fname = dir + "orb" + str(st) + ".pdf"
-    print('Saving orbital isosurfaces as', fname)
-    fig.write_image(fname)
-    print('Done.')
-    # fig.show()
 
 
 def read_xyz(filename):
@@ -481,13 +431,62 @@ if PlotMolecule:
         ),
     )
 
+    camera_eye_script = r"""
+(function() {
+    function getEye(gd) {
+        const scene = gd && gd.layout && gd.layout.scene ? gd.layout.scene : {};
+        const camera = scene.camera || {};
+        const eye = camera.eye || {x: 1.6, y: 1.6, z: 1.2};
+        return {
+            x: Number(eye.x) || 1.6,
+            y: Number(eye.y) || 1.6,
+            z: Number(eye.z) || 1.2,
+        };
+    }
+
+    function updateReadout(gd) {
+        const readout = document.getElementById('camera-eye-readout');
+        if (!readout || !gd) return;
+        const eye = getEye(gd);
+        readout.textContent = 'camera eye: x=' + eye.x.toFixed(3) + ', y=' + eye.y.toFixed(3) + ', z=' + eye.z.toFixed(3);
+    }
+
+    const plotDivs = document.querySelectorAll('.js-plotly-plot');
+    const gd = plotDivs.length ? plotDivs[plotDivs.length - 1] : null;
+    if (!gd) return;
+
+    const readout = document.createElement('div');
+    readout.id = 'camera-eye-readout';
+    readout.style.position = 'fixed';
+    readout.style.top = '12px';
+    readout.style.right = '12px';
+    readout.style.zIndex = '10000';
+    readout.style.padding = '8px 10px';
+    readout.style.borderRadius = '8px';
+    readout.style.background = 'rgba(20, 20, 20, 0.9)';
+    readout.style.color = '#ffffff';
+    readout.style.font = '12px/1.4 monospace';
+    readout.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
+    readout.style.pointerEvents = 'none';
+    document.body.appendChild(readout);
+
+    updateReadout(gd);
+    gd.on('plotly_relayout', function() {
+        const eye = getEye(gd);
+        if (eye && eye.x !== undefined && eye.y !== undefined && eye.z !== undefined) {
+            updateReadout(gd);
+        }
+    });
+})();
+"""
     if args.molout:
         molecule_file_path = args.molout
     else:
-        stem = xyz_file_path.rsplit('.', 1)[0]
-        molecule_file_path = f'{stem}_st{st:05d}_ball_stick.pdf'
+        molecule_file_path = xyz_file_path.rsplit('.', 1)[0] + '_ball_stick.html'
+        molecule_file_path2 = xyz_file_path.rsplit('.', 1)[0] + f'_st{st:05d}' + '_ball_stick.pdf'
     print('Saving molecular ball-and-stick model as', molecule_file_path)
-    molecule_fig.write_image(molecule_file_path, scale=2)
+    molecule_fig.write_html(molecule_file_path, include_plotlyjs=True, post_script=camera_eye_script)
+    molecule_fig.write_image(molecule_file_path2, scale=2)
     print('Done.')
 
 
