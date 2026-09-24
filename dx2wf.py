@@ -468,7 +468,7 @@ if PlotMolecule:
 
     molecule_fig = go.Figure(data=molecule_traces)
     molecule_fig.update_layout(
-        width=1200,
+        width=900,
         height=900,
         margin=dict(t=0, l=0, r=0, b=0),
         paper_bgcolor='rgba(0,0,0,0)',
