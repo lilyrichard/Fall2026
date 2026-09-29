@@ -442,8 +442,8 @@ if PlotMolecule:
         ),
         go.Scatter3d(
             x=[ref_origin[0]],
-            y=[ref_origin[1] + ref_scale],
-            z=[ref_origin[2] - .3*ref_scale],
+            y=[ref_origin[1]+ .3*ref_scale],
+            z=[ref_origin[2] - .4*ref_scale],
             mode='text',
             text=['y'],
             textfont=dict(color='green', size=8),
@@ -451,9 +451,9 @@ if PlotMolecule:
             showlegend=False,
         ),
         go.Scatter3d(
-            x=[ref_origin[0]],
+            x=[ref_origin[0]+ 1.3*ref_scale],
             y=[ref_origin[1]],
-            z=[ref_origin[2] + .6*ref_scale],
+            z=[ref_origin[2] + .4*ref_scale],
             mode='text',
             text=['z'],
             textfont=dict(color='blue', size=8),
