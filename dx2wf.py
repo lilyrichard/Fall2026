@@ -355,7 +355,7 @@ if PlotMolecule:
         'Br': '#8f2d56', 'I': '#6a4c93',
     }
     plot_coordinates = coordinates
-    atom_size = 6
+    atom_size = 3
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
@@ -369,7 +369,7 @@ if PlotMolecule:
                     y=[plot_coordinates[i, 1], plot_coordinates[j, 1]],
                     z=[plot_coordinates[i, 2], plot_coordinates[j, 2]],
                     mode='lines',
-                    line=dict(color='#777777', width=7),
+                    line=dict(color='#777777', width=4),
                     hoverinfo='skip',
                     showlegend=False,
                 ))
@@ -381,6 +381,7 @@ if PlotMolecule:
         mode='markers+text',
         text=atoms,
         textposition='top center',
+        textfont=dict(size=10),
         hovertemplate='%{text}<br>x=%{x:.3f}<br>y=%{y:.3f}<br>z=%{z:.3f}<extra></extra>',
         marker=dict(
             size=atom_size,
@@ -428,32 +429,32 @@ if PlotMolecule:
             showlegend=False,
         ),
         go.Scatter3d(
-            x=[ref_origin[0] + ref_scale],
+            x=[ref_origin[0] + 2*ref_scale],
             y=[ref_origin[1]],
-            z=[ref_origin[2]],
+            z=[ref_origin[2] - 0.2*ref_scale],
             mode='text',
             text=['x'],
-            textfont=dict(color='red', size=20),
+            textfont=dict(color='red', size=12),
             hoverinfo='skip',
             showlegend=False,
         ),
         go.Scatter3d(
             x=[ref_origin[0]],
             y=[ref_origin[1] + ref_scale],
-            z=[ref_origin[2] - .1*ref_scale],
+            z=[ref_origin[2] - .3*ref_scale],
             mode='text',
             text=['y'],
-            textfont=dict(color='green', size=20),
+            textfont=dict(color='green', size=12),
             hoverinfo='skip',
             showlegend=False,
         ),
         go.Scatter3d(
             x=[ref_origin[0]],
             y=[ref_origin[1]],
-            z=[ref_origin[2] + .9*ref_scale],
+            z=[ref_origin[2] + .6*ref_scale],
             mode='text',
             text=['z'],
-            textfont=dict(color='blue', size=20),
+            textfont=dict(color='blue', size=12),
             hoverinfo='skip',
             showlegend=False,
         ),
@@ -468,8 +469,8 @@ if PlotMolecule:
 
     molecule_fig = go.Figure(data=molecule_traces)
     molecule_fig.update_layout(
-        width=900,
-        height=900,
+        width=300,
+        height=300,
         margin=dict(t=0, l=0, r=0, b=0),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
