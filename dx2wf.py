@@ -356,6 +356,7 @@ if PlotMolecule:
     }
     plot_coordinates = coordinates
     atom_size = 3
+    atom_label_size = 8
     molecule_traces = []
 
     # Infer bonds from the sum of covalent radii with a modest tolerance.
@@ -381,7 +382,7 @@ if PlotMolecule:
         mode='markers+text',
         text=atoms,
         textposition='top center',
-        textfont=dict(size=10),
+        textfont=dict(size=atom_label_size),
         hovertemplate='%{text}<br>x=%{x:.3f}<br>y=%{y:.3f}<br>z=%{z:.3f}<extra></extra>',
         marker=dict(
             size=atom_size,
@@ -469,8 +470,8 @@ if PlotMolecule:
 
     molecule_fig = go.Figure(data=molecule_traces)
     molecule_fig.update_layout(
-        width=300,
-        height=300,
+        width=275,
+        height=275,
         margin=dict(t=0, l=0, r=0, b=0),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
