@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
@@ -564,16 +565,24 @@ if PlotMolecule:
     """
 
     if args.molout:
-        molecule_html_path = args.molout
-        molecule_pdf_path = args.molout.rsplit('.', 1)[0] + '.pdf'
+        base_name, ext = os.path.splitext(args.molout)
+        if ext.lower() in ('.html', '.htm'):
+            molecule_html_path = args.molout
+            molecule_export_path = base_name + '.svg'
+        elif ext.lower() in ('.svg', '.pdf', '.png'):
+            molecule_html_path = base_name + '.html'
+            molecule_export_path = args.molout
+        else:
+            molecule_html_path = args.molout + '.html'
+            molecule_export_path = args.molout + '.svg'
     else:
         stem = xyz_file_path.rsplit('.', 1)[0]
         molecule_html_path = f'{stem}_st{st:05d}_ball_stick.html'
-        molecule_pdf_path = f'{stem}_st{st:05d}_ball_stick.pdf'
+        molecule_export_path = f'{stem}_st{st:05d}_ball_stick.svg'
 
-    print('Saving molecular ball-and-stick model as', molecule_html_path)
+    print('Saving molecular ball-and-stick model as', molecule_export_path)
     molecule_fig.write_html(molecule_html_path, include_plotlyjs=True, post_script=camera_eye_script)
-    molecule_fig.write_image(molecule_pdf_path, scale=2)
+    molecule_fig.write_image(molecule_export_path, scale=2)
     print('Done.')
 
 def wf_sph(r, theta, phi):
